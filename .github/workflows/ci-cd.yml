@@ -54,19 +54,19 @@ jobs:
         run: |
           ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
             echo "Stopping old containers..."
-            docker stop frontend || true
-            docker stop backend || true
-            docker rm frontend || true
-            docker rm backend || true
+            sudo docker stop frontend || true
+            sudo docker stop backend || true
+            sudo docker rm frontend || true
+            sudo docker rm backend || true
 
             echo "Logging into Docker Hub..."
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
             echo "Pulling latest images..."
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
 
             echo "Starting containers..."
-            docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
-            docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
-          EOF
+            sudo docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+            sudo docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+EOF
