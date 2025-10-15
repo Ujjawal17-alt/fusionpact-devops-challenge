@@ -1,20 +1,15 @@
 services:
 
   frontend:
-    image: fusionpact-devops-challenge-frontend
-    build:
-      context: ./frontend
-    ports:
-      - "80:80"
-    restart: always
+  image: ujjawal447/frontend:latest
+  ports:
+    - "3000:3000"
 
-  backend:
-    image: fusionpact-devops-challenge-backend
-    build:
-      context: ./backend
-    ports:
-      - "8000:8000"
-    restart: always
+backend:
+  image: ujjawal447/backend:latest
+  ports:
+    - "8080:8080"
+
     depends_on:
       - prometheus
     environment:
