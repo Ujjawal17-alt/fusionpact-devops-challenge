@@ -8,7 +8,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
@@ -43,21 +43,25 @@ jobs:
       - name: Install SSH client
         run: sudo apt-get update && sudo apt-get install -y openssh-client
 
-      - name: Add SSH key
+      - name: Save SSH Key
         run: |
           echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
           chmod 600 deploy_key
 
-      - name: Copy docker-compose to remote and deploy
+      - name: Copy docker-compose.yml to EC2 and deploy
         run: |
-          scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/${{ secrets.DEPLOY_USER }}/docker-compose.yml
+          echo "Copying docker-compose.yml to EC2"
+          scp -o StrictHostKeyChecking=no ./docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/${{ secrets.DEPLOY_USER }}/docker-compose.yml
+
+          echo "Connecting to EC2 and deploying containers"
           ssh -o StrictHostKeyChecking=no -i deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
-            cd /home/'"${{ secrets.DEPLOY_USER }}"';
-            sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }};
-            sudo docker-compose pull;
+            set -e
+            cd /home/'"${{ secrets.DEPLOY_USER }}"'
+            echo "Logging into DockerHub"
+            sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            echo "Pulling latest images and starting containers"
+            sudo docker-compose pull
             sudo docker-compose up -d --remove-orphans
+            echo "Deployment complete!"
           '
-
-
-
 
