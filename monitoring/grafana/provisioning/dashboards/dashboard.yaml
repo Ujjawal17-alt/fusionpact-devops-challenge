@@ -1,0 +1,8 @@
+cat > monitoring/grafana/provisioning/dashboards/dashboard.yaml <<'EOF'
+apiVersion: 1
+providers:
+  - name: 'Default'
+    options:
+      path: /var/lib/grafana/dashboards
+EOF
+

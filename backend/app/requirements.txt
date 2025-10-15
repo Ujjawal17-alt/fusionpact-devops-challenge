@@ -1,0 +1,5 @@
+fastapi==0.102.0
+uvicorn[standard]==0.23.0
+prometheus-client==0.21.0
+prometheus-fastapi-instrumentator==5.10.0
+
