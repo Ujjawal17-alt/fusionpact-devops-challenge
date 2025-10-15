@@ -1,38 +1,72 @@
-deploy:
-  needs: build-and-push
-  runs-on: ubuntu-latest
-  steps:
-    - name: Install SSH client
-      run: sudo apt-get update && sudo apt-get install -y openssh-client
+name: Fusionpact CI/CD
 
-    - name: Add SSH key
-      env:
-        SSH_KEY: ${{ secrets.DEPLOY_KEY }}
-      run: |
-        echo "$SSH_KEY" > deploy_key
-        chmod 600 deploy_key
+on:
+  push:
+    branches: [ main ]
 
-    - name: Deploy to EC2
-      run: |
-        ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
-          echo "Stopping old containers if they exist..."
-          docker stop frontend || true
-          docker stop backend || true
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-          echo "Removing old containers if they exist..."
-          docker rm frontend || true
-          docker rm backend || true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-          echo "Logging into Docker Hub..."
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-          echo "Pulling latest images..."
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+      - name: Build and push frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
 
-          echo "Starting new containers..."
-          docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
-          docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+      - name: Build and push backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
 
-          echo "Deployment complete!"
-        EOF
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+
+      - name: Add SSH key
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          echo "$SSH_KEY" > deploy_key
+          chmod 600 deploy_key
+
+      - name: Deploy to EC2
+        run: |
+          ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+            echo "Stopping old containers..."
+            docker stop frontend || true
+            docker stop backend || true
+            docker rm frontend || true
+            docker rm backend || true
+
+            echo "Logging into Docker Hub..."
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+            echo "Pulling latest images..."
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+
+            echo "Starting containers..."
+            docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+            docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+          EOF
