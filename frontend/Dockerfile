@@ -1,7 +1,3 @@
-- name: Build and push frontend
-  uses: docker/build-push-action@v4
-  with:
-    context: ./frontend
-    file: ./frontend/Dockerfile
-    push: true
-    tags: ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+FROM nginx:alpine
+COPY index.html /usr/share/nginx/html/index.html
+EXPOSE 80
