@@ -50,17 +50,17 @@ jobs:
           echo "$SSH_KEY" > deploy_key
           chmod 600 deploy_key
 
-       - name: Copy docker-compose and deploy to EC2
-  run: |
-    echo "Copying docker-compose.yml to EC2..."
-    scp -i deploy_key -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/${{ secrets.DEPLOY_USER }}/docker-compose.yml
+      - name: Copy docker-compose and deploy to EC2
+        run: |
+         echo "Copying docker-compose.yml to EC2..."
+         scp -i deploy_key -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/${{ secrets.DEPLOY_USER }}/docker-compose.yml
 
-    echo "Connecting to EC2 and deploying..."
-    ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
-      cd /home/${{ secrets.DEPLOY_USER }}
-      docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-      docker-compose pull
-      docker-compose up -d --remove-orphans
-    '
+         echo "Connecting to EC2 and deploying..."
+         ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
+         cd /home/${{ secrets.DEPLOY_USER }}
+         docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+         docker-compose pull
+         docker-compose up -d --remove-orphans
+         '
 
           "
