@@ -50,7 +50,7 @@ jobs:
           echo "$SSH_KEY" > deploy_key
           chmod 600 deploy_key
 
-      - name: Copy docker-compose and deploy
+      - name: Copy docker-compose and deploy to EC2
         run: |
           echo "Copying docker-compose.yml to EC2..."
           scp -i deploy_key -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/${{ secrets.DEPLOY_USER }}/docker-compose.yml
@@ -62,3 +62,7 @@ jobs:
             sudo docker-compose pull;
             sudo docker-compose up -d --remove-orphans;
           "
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3541fdf (Add full CI/CD workflow)
