@@ -1,4 +1,4 @@
-FROM nginx:alpine
-COPY Devops_Intern.html /usr/share/nginx/html/index.html
-EXPOSE 80
-
+frontend:
+  image: ujjawal447/frontend:latest
+  ports:
+    - "3000:3000"
