@@ -7,6 +7,7 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,6 +40,7 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+
     steps:
       - name: Install SSH client
         run: sudo apt-get update && sudo apt-get install -y openssh-client
@@ -53,20 +55,20 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} bash << 'ENDSSH'
-            echo "Stopping old containers..."
-            sudo docker stop frontend || true
-            sudo docker stop backend || true
-            sudo docker rm frontend || true
-            sudo docker rm backend || true
+echo "Stopping old containers..."
+sudo docker stop frontend || true
+sudo docker stop backend || true
+sudo docker rm frontend || true
+sudo docker rm backend || true
 
-            echo "Logging into Docker Hub..."
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+echo "Logging into Docker Hub..."
+echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-            echo "Pulling latest images..."
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+echo "Pulling latest images..."
+sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
 
-            echo "Starting containers..."
-            sudo docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
-            sudo docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+echo "Starting containers..."
+sudo docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+sudo docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
 ENDSSH
