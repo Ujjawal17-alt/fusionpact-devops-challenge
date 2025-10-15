@@ -1,17 +1,17 @@
-# Use a Node.js image (example for frontend)
 FROM node:20-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files first for caching
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
 # Copy the rest of the frontend code
 COPY . .
 
-# Expose port
+# Expose port (if using dev server)
 EXPOSE 3000
 
 # Start the app
