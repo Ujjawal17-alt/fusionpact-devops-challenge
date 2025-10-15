@@ -52,8 +52,13 @@ jobs:
 
       - name: Copy docker-compose and deploy to EC2
         run: |
+         echo "Current working directory:"
+         pwd
+         echo "Listing files:"
+         ls -R
+
          echo "Copying docker-compose.yml to EC2..."
-         scp -i deploy_key -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/root/fusionpact-devops-challenge/docker-compose.yml
+         scp -i deploy_key -o StrictHostKeyChecking=no ./docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/root/fusionpact-devops-challenge/docker-compose.yml
 
          echo "Connecting to EC2 and deploying..."
          ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
@@ -62,4 +67,5 @@ jobs:
          docker-compose pull
          docker-compose up -d --remove-orphans
          '
+
 
