@@ -55,6 +55,7 @@ jobs:
           echo "Copying docker-compose.yml to EC2..."
           scp -i deploy_key -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/${{ secrets.DEPLOY_USER }}/docker-compose.yml
 
+
           echo "Connecting to EC2 and deploying..."
           ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
             cd /home/${{ secrets.DEPLOY_USER }};
