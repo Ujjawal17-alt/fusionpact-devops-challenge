@@ -49,17 +49,14 @@ jobs:
         run: |
           echo "$SSH_KEY" > deploy_key
           chmod 600 deploy_key
-
-      - name: Copy docker-compose and deploy to EC2
+      - name: Deploy containers to EC2
         run: |
-          echo "Copying docker-compose.yml to EC2..."
-          ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "mkdir -p ~/fusionpact-devops-challenge"
-          scp -i deploy_key -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/fusionpact-devops-challenge/docker-compose.yml
+         echo "Connecting to EC2 and deploying..."
+         ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
+         docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+         docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+         docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+            '
 
-          echo "Connecting to EC2 and deploying..."
-          ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
-            cd ~/fusionpact-devops-challenge
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            docker-compose pull
-            docker-compose up -d --remove-orphans
-          '
