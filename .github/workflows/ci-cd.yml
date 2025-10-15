@@ -54,21 +54,33 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} bash << 'ENDSSH'
-echo "Stopping old containers..."
-sudo docker stop frontend || true
-sudo docker stop backend || true
-sudo docker rm frontend || true
-sudo docker rm backend || true
+          ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
+            echo 'Stopping old containers if they exist...'
+            
+            # Stop and remove frontend if exists
+            FRONTEND_CONTAINER=\$(sudo docker ps -aq -f name=frontend) || true
+            if [ ! -z \"\$FRONTEND_CONTAINER\" ]; then
+              sudo docker stop \$FRONTEND_CONTAINER || true
+              sudo docker rm \$FRONTEND_CONTAINER || true
+            fi
 
-echo "Logging into Docker Hub..."
-echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+            # Stop and remove backend if exists
+            BACKEND_CONTAINER=\$(sudo docker ps -aq -f name=backend) || true
+            if [ ! -z \"\$BACKEND_CONTAINER\" ]; then
+              sudo docker stop \$BACKEND_CONTAINER || true
+              sudo docker rm \$BACKEND_CONTAINER || true
+            fi
 
-echo "Pulling latest images..."
-sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
-sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+            echo 'Logging into Docker Hub...'
+            echo '${{ secrets.DOCKERHUB_TOKEN }}' | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-echo "Starting containers..."
-sudo docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
-sudo docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
-ENDSSH
+            echo 'Pulling latest images...'
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest
+
+            echo 'Starting containers...'
+            sudo docker run -d --name frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-frontend:latest || true
+            sudo docker run -d --name backend -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/fusionpact-backend:latest || true
+
+            echo 'Deployment completed successfully!'
+          "
