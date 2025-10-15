@@ -62,7 +62,3 @@ jobs:
             sudo docker-compose pull;
             sudo docker-compose up -d --remove-orphans;
           "
-<<<<<<< HEAD
-=======
-
->>>>>>> 3541fdf (Add full CI/CD workflow)
