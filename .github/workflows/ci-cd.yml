@@ -55,18 +55,17 @@ jobs:
 
       - name: Copy docker-compose and deploy to EC2
         run: |
-          echo "Current working directory:"
-          pwd
-          echo "Listing files:"
-          ls -R
+         echo "Creating target directory on EC2..."
+         ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "mkdir -p /home/${{ secrets.DEPLOY_USER }}/fusionpact-devops-challenge"
 
-          echo "Copying docker-compose.yml to EC2..."
-          scp -i deploy_key -o StrictHostKeyChecking=no ./docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/${{ secrets.DEPLOY_USER }}/fusionpact-devops-challenge/docker-compose.yml
+         echo "Copying docker-compose.yml to EC2..."
+         scp -i deploy_key -o StrictHostKeyChecking=no ./docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/${{ secrets.DEPLOY_USER }}/fusionpact-devops-challenge/docker-compose.yml
 
-          echo "Connecting to EC2 and deploying..."
-          ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
-          cd /home/${{ secrets.DEPLOY_USER }}/fusionpact-devops-challenge
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            docker-compose pull
-            docker-compose up -d --remove-orphans
-          '
+         echo "Connecting to EC2 and deploying..."
+         ssh -i deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
+         cd /home/${{ secrets.DEPLOY_USER }}/fusionpact-devops-challenge
+         docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+         docker-compose pull
+         docker-compose up -d --remove-orphans
+         '
+
