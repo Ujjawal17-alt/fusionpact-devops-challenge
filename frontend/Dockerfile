@@ -1,18 +1,11 @@
-FROM node:20-alpine
+# Use nginx to serve static HTML
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy HTML files to nginx default directory
+COPY Devops_Intern.html /usr/share/nginx/html/index.html
 
-# Copy package files first for caching
-COPY package*.json ./
+# Expose port 80
+EXPOSE 80
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the frontend code
-COPY . .
-
-# Expose port (if using dev server)
-EXPOSE 3000
-
-# Start the app
-CMD ["npm", "start"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
